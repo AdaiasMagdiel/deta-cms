@@ -8,10 +8,7 @@ bp = Blueprint("users", __name__, url_prefix='/users')
 
 @bp.post("")
 def index():
-    data = request.get_json(silent=True)
-
-    if data is None or len(data) == 0:
-        return {'error': 'Missing data'}, 400
+    data = request.get_json(silent=True) or {}
 
     try:
         repo = UserRepository()
@@ -29,3 +26,5 @@ def index():
                     include_url=False
                 )
         }, 422
+    except ValueError as e:
+        return {'error': str(e)}, 422
