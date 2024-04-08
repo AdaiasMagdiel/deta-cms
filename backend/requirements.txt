@@ -1,4 +1,4 @@
 Flask
 python-dotenv
-mgdl-simple-cache
 deta
+mgdl-simple-cache
