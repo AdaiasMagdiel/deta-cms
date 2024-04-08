@@ -8,7 +8,9 @@ def create_app() -> Flask:
     app = Flask(__name__)
 
     settings.init_app(app)
-    cache.init(settings.DETA_KEY, settings.CACHE_TABLE)
+    cache.init(
+        deta_key=settings.DETA_PROJECT_KEY, table_name=settings.CACHE_TABLE
+    )
     Router.init_app(app)
 
     return app
