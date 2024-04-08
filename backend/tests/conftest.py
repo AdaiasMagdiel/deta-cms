@@ -4,15 +4,15 @@ from flask import Flask
 from flask.testing import FlaskClient
 from app import create_app
 
+app_ = create_app()
+app_.config.update({
+    "TESTING": True,
+})
+
 
 @pytest.fixture
 def app() -> Generator[Flask, None, None]:
-    app = create_app()
-    app.config.update({
-        "TESTING": True,
-    })
-
-    yield app
+    yield app_
 
 
 @pytest.fixture
