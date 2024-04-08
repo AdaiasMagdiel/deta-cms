@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 
 class Config:
     ENV_MODE: str
-    DETA_KEY: str
+    DETA_PROJECT_KEY: str
     CACHE_TABLE: str
 
     def init_app(self, app: Flask) -> None:
