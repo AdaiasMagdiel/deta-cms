@@ -83,3 +83,16 @@ class UserRepository(Repository):
 
         user = res.items[0]
         return UserModel(**user)
+
+    def get_all(self, page: int, per_page: int) -> list[UserModel]:
+        items = []
+        last = None
+
+        for i in range(page):
+            res = self._base.fetch(limit=per_page, last=last)
+            items = res.items
+            last = res.last
+            if last is None:
+                break
+
+        return [UserModel(**data) for data in items]
