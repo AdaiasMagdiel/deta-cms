@@ -1,5 +1,13 @@
+import pytest
 from flask.testing import FlaskClient
 from app.entities.user import UserRepository
+
+
+@pytest.fixture(autouse=True)
+def run_after_each_test():
+    yield
+
+    UserRepository().drop()
 
 
 def test_user_create_success(client: FlaskClient):
@@ -13,7 +21,6 @@ def test_user_create_success(client: FlaskClient):
 
     res = client.post('/api/users', json=user)
 
-    UserRepository().drop()
     assert res.status_code == 201
     assert 'user' in (res.get_json(silent=True) or {})
 
@@ -114,7 +121,6 @@ def test_user_cannot_create_with_invalid_username(client: FlaskClient):
         }
     )
 
-    UserRepository().drop()
     assert res1.status_code == 422
     assert res2.status_code == 422
     assert res3.status_code == 422
@@ -152,7 +158,6 @@ def test_user_cannot_create_with_invalid_email(client: FlaskClient):
         }
     )
 
-    UserRepository().drop()
     assert res1.status_code == 422
     assert res2.status_code == 422
     assert res3.status_code == 422
@@ -197,7 +202,6 @@ def test_user_cannot_create_with_used_username_or_used_email(
     res_email_1 = client.post('/api/users', json=user_email_1)
     res_email_2 = client.post('/api/users', json=user_email_2)
 
-    UserRepository().drop()
     assert res_username_1.status_code == 201
     assert res_username_2.status_code == 422
     assert res_email_1.status_code == 201
@@ -225,7 +229,6 @@ def test_user_cannot_create_with_used_username_username_are_caseinsensitive(
     res_username_1 = client.post('/api/users', json=user_username_1)
     res_username_2 = client.post('/api/users', json=user_username_2)
 
-    UserRepository().drop()
     assert res_username_1.status_code == 201
     assert res_username_2.status_code == 422
 
@@ -251,6 +254,5 @@ def test_user_cannot_create_with_used_email_email_are_caseinsensitive(
     res_email_1 = client.post('/api/users', json=user_email_1)
     res_email_2 = client.post('/api/users', json=user_email_2)
 
-    UserRepository().drop()
     assert res_email_1.status_code == 201
     assert res_email_2.status_code == 422
