@@ -1,8 +1,16 @@
 from random import randint
 from typing import Any
 from flask.testing import FlaskClient
+import pytest
 from werkzeug.test import TestResponse
 from app.entities.user import UserRepository
+
+
+@pytest.fixture(autouse=True)
+def run_after_each_test():
+    yield
+
+    UserRepository().drop()
 
 
 def get_json(res: TestResponse) -> dict[str, Any]:
@@ -58,14 +66,10 @@ def test_user_can_update_success(client: FlaskClient):
     assert res.status_code == 200
     assert get_json(res).get('email', '') == data.get('email', '')
 
-    UserRepository().drop()
-
 
 def test_user_cannot_update_with_invalid_key(client: FlaskClient):
     data = {'username': 'new.username'}
     res1 = client.put('/api/users/not-exists', json=data)
-
-    UserRepository().drop()
 
     assert res1.status_code == 404
 
@@ -79,8 +83,6 @@ def test_user_cannot_update_with_used_username(client: FlaskClient):
     data = {'username': user['username'].upper()}
     res2 = client.put(f'/api/users/{user["key"]}', json=data)
 
-    UserRepository().drop()
-
     assert res1.status_code == 422
     assert res2.status_code == 422
 
@@ -93,8 +95,6 @@ def test_user_cannot_update_with_used_email(client: FlaskClient):
 
     data = {'email': user['email'].upper()}
     res2 = client.put(f'/api/users/{user["key"]}', json=data)
-
-    UserRepository().drop()
 
     assert res1.status_code == 422
     assert res2.status_code == 422
