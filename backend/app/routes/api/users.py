@@ -31,6 +31,22 @@ def create():
         return {'error': str(e)}, 422
 
 
+@bp.get("")
+def get_all():
+    page = request.args.get('page', 1, int)
+    per_page = request.args.get('per_page', 20, int)
+
+    repo = UserRepository()
+    users = repo.get_all(page, per_page)
+
+    return {
+        'last_page': len(users) == 0 or len(users) < per_page,
+        'page': page,
+        'per_page': page,
+        'users': [user.model_dump(exclude={'password'}) for user in users]
+    }
+
+
 @bp.get("/<user_key>")
 def get(user_key: str):
     repo = UserRepository()
