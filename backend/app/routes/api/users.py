@@ -82,3 +82,14 @@ def update(user_key: str):
         return {'error': str(e)}, 422
     except NotFoundException as e:
         return {'error': str(e)}, 404
+
+
+@bp.delete("/<user_key>")
+def delete(user_key: str):
+    try:
+        repo = UserRepository()
+        repo.delete(user_key)
+
+        return {'status': 'success'}, 200
+    except NotFoundException as e:
+        return {'error': str(e)}, 404
