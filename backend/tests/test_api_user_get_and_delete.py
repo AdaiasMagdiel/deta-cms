@@ -1,7 +1,7 @@
+import pytest
 from random import randint
 from typing import Any
 from flask.testing import FlaskClient
-import pytest
 from app.entities.user import UserRepository
 
 
@@ -46,7 +46,7 @@ def test_get_user_not_found(client: FlaskClient):
 
 def test_get_pagination(client: FlaskClient):
     # total users: 10
-    for i in range(10):
+    for _ in range(10):
         create_user(client)
 
     res = client.get('/api/users')  # default per page: 20
@@ -57,7 +57,7 @@ def test_get_pagination(client: FlaskClient):
     assert data['last_page'] is True
 
     # total users: 21
-    for i in range(11):
+    for _ in range(11):
         create_user(client)
 
     res = client.get('/api/users')  # default per page: 20
@@ -73,3 +73,18 @@ def test_get_pagination(client: FlaskClient):
     assert res.status_code == 200
     assert len(data['users']) == 1
     assert data['last_page'] is True
+
+
+def test_can_delete_user(client: FlaskClient):
+    user = create_user(client)
+
+    res = client.delete(f'/api/users/{user["key"]}')
+    assert res.status_code == 200
+
+    res = client.get(f'/api/users/{user["key"]}')
+    assert res.status_code == 404
+
+
+def test_cannot_delete_invalid_user(client: FlaskClient):
+    res = client.delete('/api/users/not-exists')
+    assert res.status_code == 404
