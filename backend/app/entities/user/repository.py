@@ -96,3 +96,10 @@ class UserRepository(Repository):
                 break
 
         return [UserModel(**data) for data in items]
+
+    def delete(self, user_key: str) -> None:
+        user = self.get_by('key', user_key)
+        if user is None:
+            raise NotFoundException(f'There\'s no user with "{user_key}" key.')
+
+        self._base.delete(user_key)
