@@ -12,7 +12,10 @@ class Config:
         load_dotenv()
 
         for key, value in os.environ.items():
-            app.config[key] = value
+            if key.startswith("FLASK_"):
+                flask_key = key[6:]
+                app.config[flask_key] = value
+
             setattr(self, key, value)
 
 
