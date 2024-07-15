@@ -1,13 +1,15 @@
 import pytest
 from flask.testing import FlaskClient
-from app.entities.user import UserRepository
+from app.repositories.user import User
+
+endpoint = '/api/auth/register'
 
 
 @pytest.fixture(autouse=True)
 def run_after_each_test():
     yield
 
-    UserRepository().drop()
+    User().drop_all()
 
 
 def test_user_create_success(client: FlaskClient):
@@ -19,21 +21,21 @@ def test_user_create_success(client: FlaskClient):
         'role': 'ADMIN'
     }
 
-    res = client.post('/api/users', json=user)
+    res = client.post(endpoint, json=user)
 
     assert res.status_code == 201
     assert 'user' in (res.get_json(silent=True) or {})
 
 
 def test_user_create_missing_data(client: FlaskClient):
-    res = client.post('/api/users')
+    res = client.post(endpoint)
 
     assert res.status_code == 422
 
 
 def test_user_cannot_create_with_missing_fields(client: FlaskClient):
     name = client.post(
-        '/api/users',
+        endpoint,
         json={
             'username': 'john.doe',
             'email': 'jhdoe@email.com',
@@ -43,7 +45,7 @@ def test_user_cannot_create_with_missing_fields(client: FlaskClient):
     )
 
     username = client.post(
-        '/api/users',
+        endpoint,
         json={
             'name': 'John Doe',
             'email': 'jhdoe@email.com',
@@ -53,7 +55,7 @@ def test_user_cannot_create_with_missing_fields(client: FlaskClient):
     )
 
     email = client.post(
-        '/api/users',
+        endpoint,
         json={
             'name': 'John Doe',
             'username': 'john.doe',
@@ -63,7 +65,7 @@ def test_user_cannot_create_with_missing_fields(client: FlaskClient):
     )
 
     password = client.post(
-        '/api/users',
+        endpoint,
         json={
             'name': 'John Doe',
             'username': 'john.doe',
@@ -73,7 +75,7 @@ def test_user_cannot_create_with_missing_fields(client: FlaskClient):
     )
 
     role = client.post(
-        '/api/users',
+        endpoint,
         json={
             'name': 'John Doe',
             'username': 'john.doe',
@@ -91,7 +93,7 @@ def test_user_cannot_create_with_missing_fields(client: FlaskClient):
 
 def test_user_cannot_create_with_invalid_username(client: FlaskClient):
     res1 = client.post(
-        '/api/users',
+        endpoint,
         json={
             'name': 'John Doe',
             'username': 'john doe',
@@ -101,7 +103,7 @@ def test_user_cannot_create_with_invalid_username(client: FlaskClient):
         }
     )
     res2 = client.post(
-        '/api/users',
+        endpoint,
         json={
             'name': 'John Doe',
             'username': 'john|doe',
@@ -111,10 +113,20 @@ def test_user_cannot_create_with_invalid_username(client: FlaskClient):
         }
     )
     res3 = client.post(
-        '/api/users',
+        endpoint,
         json={
             'name': 'John Doe',
             'username': 'johnÁdoe',
+            'email': 'jhdoe@email.com',
+            'password': '123',
+            'role': 'ADMIN'
+        }
+    )
+    res4 = client.post(
+        endpoint,
+        json={
+            'name': 'John Doe',
+            'username': 'ab',
             'email': 'jhdoe@email.com',
             'password': '123',
             'role': 'ADMIN'
@@ -124,11 +136,12 @@ def test_user_cannot_create_with_invalid_username(client: FlaskClient):
     assert res1.status_code == 422
     assert res2.status_code == 422
     assert res3.status_code == 422
+    assert res4.status_code == 422
 
 
 def test_user_cannot_create_with_invalid_email(client: FlaskClient):
     res1 = client.post(
-        '/api/users',
+        endpoint,
         json={
             'name': 'John Doe',
             'username': 'john doe',
@@ -138,7 +151,7 @@ def test_user_cannot_create_with_invalid_email(client: FlaskClient):
         }
     )
     res2 = client.post(
-        '/api/users',
+        endpoint,
         json={
             'name': 'John Doe',
             'username': 'john|doe',
@@ -148,7 +161,7 @@ def test_user_cannot_create_with_invalid_email(client: FlaskClient):
         }
     )
     res3 = client.post(
-        '/api/users',
+        endpoint,
         json={
             'name': 'John Doe',
             'username': 'johnÁdoe',
@@ -196,16 +209,16 @@ def test_user_cannot_create_with_used_username_or_used_email(
         'role': 'ADMIN'
     }
 
-    res_username_1 = client.post('/api/users', json=user_username_1)
-    res_username_2 = client.post('/api/users', json=user_username_2)
+    res_username_1 = client.post(endpoint, json=user_username_1)
+    res_username_2 = client.post(endpoint, json=user_username_2)
 
-    res_email_1 = client.post('/api/users', json=user_email_1)
-    res_email_2 = client.post('/api/users', json=user_email_2)
+    res_email_1 = client.post(endpoint, json=user_email_1)
+    res_email_2 = client.post(endpoint, json=user_email_2)
 
     assert res_username_1.status_code == 201
-    assert res_username_2.status_code == 422
+    assert res_username_2.status_code == 409
     assert res_email_1.status_code == 201
-    assert res_email_2.status_code == 422
+    assert res_email_2.status_code == 409
 
 
 def test_user_cannot_create_with_used_username_username_are_caseinsensitive(
@@ -226,11 +239,11 @@ def test_user_cannot_create_with_used_username_username_are_caseinsensitive(
         'role': 'ADMIN'
     }
 
-    res_username_1 = client.post('/api/users', json=user_username_1)
-    res_username_2 = client.post('/api/users', json=user_username_2)
+    res_username_1 = client.post(endpoint, json=user_username_1)
+    res_username_2 = client.post(endpoint, json=user_username_2)
 
     assert res_username_1.status_code == 201
-    assert res_username_2.status_code == 422
+    assert res_username_2.status_code == 409
 
 
 def test_user_cannot_create_with_used_email_email_are_caseinsensitive(
@@ -251,8 +264,8 @@ def test_user_cannot_create_with_used_email_email_are_caseinsensitive(
         'role': 'ADMIN'
     }
 
-    res_email_1 = client.post('/api/users', json=user_email_1)
-    res_email_2 = client.post('/api/users', json=user_email_2)
+    res_email_1 = client.post(endpoint, json=user_email_1)
+    res_email_2 = client.post(endpoint, json=user_email_2)
 
     assert res_email_1.status_code == 201
-    assert res_email_2.status_code == 422
+    assert res_email_2.status_code == 409
