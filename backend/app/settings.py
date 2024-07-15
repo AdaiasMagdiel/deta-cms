@@ -7,6 +7,7 @@ class Config:
     ENV_MODE: str
     DETA_PROJECT_KEY: str
     CACHE_TABLE: str
+    FLASK_SECRET_KEY: str
 
     def init_app(self, app: Flask) -> None:
         load_dotenv()
