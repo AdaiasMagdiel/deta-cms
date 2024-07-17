@@ -1,7 +1,9 @@
 import re
-from typing import Optional
+from typing import Any, Optional
 from deta import _Base
 from app.repositories import Base, UniqueException, ValidateException
+from app.repositories.role import Role
+from app.utils import slugify
 
 
 class User(Base):
@@ -72,6 +74,18 @@ class User(Base):
     def get_by(self, key: str, value: str) -> Optional['User']:
         return super().base_get_by(key, value, User)
 
+    def get_role(self) -> Optional[Role]:
+        return Role().get_by('slug', self.role)
+
+    def to_dict(self, hide: list[str] = []) -> dict:
+        data = super().to_dict(hide=hide)
+        role = self.get_role()
+
+        if role is not None:
+            data['role'] = role.to_dict()
+
+        return data
+
     def create(self, data: dict[str, str]) -> 'User':
         data = self.validate(
             data, required=['name', 'username', 'email', 'password', 'role']
@@ -89,8 +103,18 @@ class User(Base):
                 "The email '{0}' is already registered.".format(data['email'])
             )
 
+        role_repo = Role()
+
+        role = role_repo.get_by('slug', slugify(data['role']))
+        if role is None:
+            role = role_repo.create({'title': data['role']})
+
+        del data['role']
+
         for k, v in data.items():
             setattr(self, k, v)
+
+        self.role = role.slug
 
         res: dict = self.base.put(self.to_dict())  # type: ignore
         self.key = res['key']
