@@ -1,11 +1,11 @@
 import jwt
 import datetime
 from flask import Blueprint, request
-from app.repositories import Repository, UniqueException, ValidateException
+from app.repositories import UniqueException, ValidateException
 from app.settings import settings
 from app.repositories.user import User
 
-bp = Blueprint("routes", __name__, url_prefix="/auth")
+bp = Blueprint("auth", __name__, url_prefix="/auth")
 
 
 def generate_token(user_id):
@@ -40,4 +40,4 @@ def register():
 
     token = generate_token(user.key)
 
-    return {"token": token, "user": user.to_dict()}, 201
+    return {"token": token, "user": user.to_dict(hide=['password'])}, 201
