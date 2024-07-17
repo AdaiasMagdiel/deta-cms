@@ -32,6 +32,19 @@ class Base:
 
         return cls
 
+    def get(self, key: str):
+        return self.base.get(key)
+
+    def count(self) -> int:
+        res = self.base.fetch()
+        count = res.count
+
+        while res.last:
+            res = self.base.fetch(last=res.last)
+            count += res.count
+
+        return count
+
     def base_get_by(self, key: str, value: Any,
                     base_class: Type[T]) -> Optional[T]:
         res = self.base.fetch({key: value})
@@ -59,6 +72,18 @@ class Base:
 
         for item in all_items:
             self.base.delete(item['key'])
+
+    def __repr__(self) -> str:
+        template = "<{name} {params}>"
+        name = self.__class__.__name__
+
+        params = []
+        for key, value in self.to_dict().items():
+            params.append(f'{key}="{value}"')
+
+        template = template.format(name=name, params=" ".join(params))
+
+        return template
 
 
 class ValidateException(Exception):
