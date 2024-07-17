@@ -12,7 +12,7 @@ def run_after_each_test():
     User().drop_all()
 
 
-def test_user_create_success(client: FlaskClient):
+def test_should_create_user(client: FlaskClient):
     user = {
         'name': 'John Doe',
         'username': 'john.doe',
@@ -27,13 +27,13 @@ def test_user_create_success(client: FlaskClient):
     assert 'user' in (res.get_json(silent=True) or {})
 
 
-def test_user_create_missing_data(client: FlaskClient):
+def test_is_not_possible_to_create_user_with_missing_data(client: FlaskClient):
     res = client.post(endpoint)
 
     assert res.status_code == 422
 
 
-def test_user_cannot_create_with_missing_fields(client: FlaskClient):
+def test_cannot_create_user_with_missing_fields(client: FlaskClient):
     name = client.post(
         endpoint,
         json={
@@ -91,7 +91,7 @@ def test_user_cannot_create_with_missing_fields(client: FlaskClient):
     assert role.status_code == 422
 
 
-def test_user_cannot_create_with_invalid_username(client: FlaskClient):
+def test_cannot_create_user_with_invalid_username(client: FlaskClient):
     res1 = client.post(
         endpoint,
         json={
@@ -139,7 +139,7 @@ def test_user_cannot_create_with_invalid_username(client: FlaskClient):
     assert res4.status_code == 422
 
 
-def test_user_cannot_create_with_invalid_email(client: FlaskClient):
+def test_cannot_create_user_with_invalid_email(client: FlaskClient):
     res1 = client.post(
         endpoint,
         json={
@@ -176,7 +176,7 @@ def test_user_cannot_create_with_invalid_email(client: FlaskClient):
     assert res3.status_code == 422
 
 
-def test_user_cannot_create_with_used_username_or_used_email(
+def test_cannot_create_user_with_used_username_or_used_email(
     client: FlaskClient
 ):
     user_username_1 = {
@@ -221,7 +221,7 @@ def test_user_cannot_create_with_used_username_or_used_email(
     assert res_email_2.status_code == 409
 
 
-def test_user_cannot_create_with_used_username_username_are_caseinsensitive(
+def test_cannot_create_user_with_used_username_username_are_caseinsensitive(
     client: FlaskClient
 ):
     user_username_1 = {
@@ -246,7 +246,7 @@ def test_user_cannot_create_with_used_username_username_are_caseinsensitive(
     assert res_username_2.status_code == 409
 
 
-def test_user_cannot_create_with_used_email_email_are_caseinsensitive(
+def test_cannot_create_user_with_used_email_email_are_caseinsensitive(
     client: FlaskClient
 ):
     user_email_1 = {
